@@ -8,6 +8,7 @@ const {
   submitQuiz,
   getMyProgress,
   getAllRecords,
+   getDashboardStats,
 } = require("../controllers/quizController");
 
 const {
@@ -18,7 +19,7 @@ const {
 // Teacher routes
 router.post("/create", protectTeacher, createQuiz);
 router.get("/records", protectTeacher, getAllRecords);
-
+router.get("/stats", protectTeacher, getDashboardStats);
 // Student routes
 router.get("/code/:code", getQuizByCode); // public (link se aata hai)
 router.post("/submit", protectStudent, submitQuiz);

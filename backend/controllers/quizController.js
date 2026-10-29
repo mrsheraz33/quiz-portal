@@ -196,10 +196,36 @@ const getAllRecords = async (req, res) => {
   }
 };
 
+// Teacher: Dashboard stats
+const getDashboardStats = async (req, res) => {
+  try {
+    const quizzes = await Quiz.find({ teacherId: req.teacher.id }).select("_id");
+    const quizIds = quizzes.map((q) => q._id);
+
+    const totalQuizzes = quizzes.length;
+
+    const attempts = await Attempt.find({ quizId: { $in: quizIds } });
+    const totalAttempts = attempts.length;
+
+    let avgScore = 0;
+    if (attempts.length > 0) {
+      const totalPct = attempts.reduce((sum, a) => {
+        return sum + (a.total > 0 ? (a.score / a.total) * 100 : 0);
+      }, 0);
+      avgScore = Math.round(totalPct / attempts.length);
+    }
+
+    res.status(200).json({ totalQuizzes, totalAttempts, avgScore });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   createQuiz,
   getQuizByCode,
   submitQuiz,
   getMyProgress,
   getAllRecords,
+  getDashboardStats,
 };

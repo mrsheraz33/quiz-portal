@@ -522,6 +522,22 @@
     document.getElementById("logoutBtn").addEventListener("click", () => {
       logout("teacher");
     });
+
+    // Load dashboard stats
+async function loadStats() {
+  try {
+    const data = await apiCall("/quiz/stats", "GET", null, "teacher");
+    document.getElementById("totalQuizzes").textContent = data.totalQuizzes;
+    document.getElementById("totalAttempts").textContent = data.totalAttempts;
+    document.getElementById("avgScore").textContent = `${data.avgScore}%`;
+  } catch (error) {
+    console.error("Failed to load stats:", error.message);
+  }
+}
+
+if (token && user) {
+  loadStats();
+}
   </script>
 
 </body>
