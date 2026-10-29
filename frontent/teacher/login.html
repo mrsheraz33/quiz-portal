@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Login — AI Quiz Portal</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="auth-page">
+    <div class="auth-container">
+
+      <a href="../index.html" class="back-link">
+        <i data-lucide="arrow-left"></i>
+        Back to Home
+      </a>
+
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <i data-lucide="log-in"></i>
+          </div>
+          <h1 class="auth-title">Teacher Login</h1>
+          <p class="auth-subtitle">Welcome back! Please login to continue</p>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form id="loginForm">
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="e.g. ali@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required />
+          </div>
+
+          <button type="submit" id="submitBtn" class="btn btn-primary btn-full">
+            Login
+          </button>
+
+        </form>
+
+        <p class="auth-footer">
+          Don't have an account?
+          <a href="signup.html">Signup</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const form = document.getElementById("loginForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        showAlert("alertBox", "Please fill all fields", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+
+      try {
+        const data = await apiCall("/teacher/login", "POST", {
+          email,
+          password,
+        });
+
+        saveToken("teacher", data.token);
+        saveUser("teacher", data.teacher);
+
+        showAlert("alertBox", "Login successful!", "success");
+
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 800);
+      } catch (error) {
+        showAlert("alertBox", error.message, "error");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Login";
+      }
+    });
+  </script>
+
+</body>
+</html>

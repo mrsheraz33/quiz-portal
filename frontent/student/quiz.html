@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — AI Quiz Portal</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    /* ---------- Top Bar ---------- */
+    .quiz-topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-200);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .quiz-topbar-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .quiz-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .quiz-title-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--gray-500);
+    }
+
+    .quiz-title-text {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--gray-900);
+    }
+
+    /* ---------- Timer ---------- */
+    .timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--primary-light);
+      border-radius: 10px;
+      color: var(--primary);
+      font-size: 16px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      transition: all 0.3s ease;
+    }
+
+    .timer [data-lucide] { width: 20px; height: 20px; }
+
+    .timer.warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .timer.danger {
+      background: #fee2e2;
+      color: var(--danger);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* ---------- Content ---------- */
+    .quiz-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+    }
+
+    .warning-banner {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #92400e;
+    }
+
+    .warning-banner [data-lucide] {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* ---------- Question Card ---------- */
+    .question-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .question-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .question-number {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      color: var(--white);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .question-text {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--gray-900);
+      line-height: 1.5;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--white);
+      font-size: 15px;
+      color: var(--gray-700);
+      font-weight: 500;
+    }
+
+    .option:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .option input { display: none; }
+
+    .option-letter {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .option input:checked + .option-letter {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .option input:checked ~ .option-text {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .option:has(input:checked) {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    /* ---------- Submit Bar ---------- */
+    .submit-bar {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      bottom: 20px;
+    }
+
+    .submit-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .submit-info-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .submit-info-value {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--gray-900);
+    }
+
+    /* ---------- Loading / Error ---------- */
+    .center-state {
+      padding: 100px 20px;
+      text-align: center;
+    }
+
+    .center-state .spinner-dark {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-icon {
+      width: 64px;
+      height: 64px;
+      background: #fee2e2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .error-icon [data-lucide] {
+      color: var(--danger);
+      width: 32px;
+      height: 32px;
+    }
+
+    .center-state h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+
+    .center-state p {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    /* ---------- Auto-submit Overlay ---------- */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .overlay.show { display: flex; }
+
+    .overlay-card {
+      background: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .overlay-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .overlay-icon.danger {
+      background: #fee2e2;
+    }
+
+    .overlay-icon.danger [data-lucide] {
+      color: var(--danger);
+      width: 36px;
+      height: 36px;
+    }
+
+    .overlay-icon.warning {
+      background: #fef3c7;
+    }
+
+    .overlay-icon.warning [data-lucide] {
+      color: var(--warning);
+      width: 36px;
+      height: 36px;
+    }
+
+    .overlay-card h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gray-900);
+      margin-bottom: 10px;
+    }
+
+    .overlay-card p {
+      font-size: 15px;
+      color: var(--gray-500);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 640px) {
+      .quiz-content { padding: 24px 16px 40px; }
+      .question-card { padding: 24px 20px; }
+      .submit-bar { padding: 20px; flex-direction: column; align-items: stretch; }
+      .submit-bar .btn { width: 100%; }
+      .quiz-title-text { font-size: 15px; }
+      .timer { padding: 8px 14px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING -->
+  <div class="center-state" id="loadingState">
+    <div class="spinner-dark"></div>
+    <p>Loading quiz...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div class="center-state" id="errorState" style="display: none;">
+    <div class="error-icon">
+      <i data-lucide="alert-triangle"></i>
+    </div>
+    <h2>Quiz Not Found</h2>
+    <p>The quiz link is invalid or expired.</p>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="quizContainer" style="display: none;">
+
+    <!-- TOP BAR -->
+    <div class="quiz-topbar">
+      <div class="quiz-topbar-content">
+        <div class="quiz-title">
+          <span class="quiz-title-label">Quiz</span>
+          <span class="quiz-title-text" id="quizTopic">-</span>
+        </div>
+        <div class="timer" id="timerBox">
+          <i data-lucide="clock"></i>
+          <span id="timerText">00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="quiz-content">
+
+      <div class="warning-banner">
+        <i data-lucide="alert-circle"></i>
+        <span>Do not switch tabs or minimize the window. The quiz will auto-submit if you leave this page.</span>
+      </div>
+
+      <form id="quizForm">
+        <div id="questionsContainer"></div>
+
+        <div class="submit-bar">
+          <div class="submit-info">
+            <span class="submit-info-label">Progress</span>
+            <span class="submit-info-value"><span id="answeredCount">0</span> / <span id="totalCount">0</span> answered</span>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i data-lucide="check-circle-2"></i>
+            Submit Quiz
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+
+  <!-- AUTO-SUBMIT OVERLAY -->
+  <div class="overlay" id="overlay">
+    <div class="overlay-card">
+      <div class="overlay-icon danger" id="overlayIcon">
+        <i data-lucide="alert-triangle"></i>
+      </div>
+      <h2 id="overlayTitle">Auto-Submitting</h2>
+      <p id="overlayMessage">Your quiz is being submitted.</p>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Auth check
+    const token = getToken("student");
+    const user = getUser("student");
+
+    if (!token || !user) {
+      window.location.href = "login.html";
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizCode = urlParams.get("code");
+
+    let currentQuiz = null;
+    let timerInterval = null;
+    let timeRemaining = 0;      // seconds
+    let submitted = false;
+    let submitReason = "completed";
+
+    const loadingState = document.getElementById("loadingState");
+    const errorState = document.getElementById("errorState");
+    const quizContainer = document.getElementById("quizContainer");
+    const questionsContainer = document.getElementById("questionsContainer");
+    const timerBox = document.getElementById("timerBox");
+    const timerText = document.getElementById("timerText");
+    const answeredCountEl = document.getElementById("answeredCount");
+    const totalCountEl = document.getElementById("totalCount");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayMessage = document.getElementById("overlayMessage");
+    const overlayIcon = document.getElementById("overlayIcon");
+
+    // ---------- Load Quiz ----------
+    async function loadQuiz() {
+      if (!quizCode) {
+        loadingState.style.display = "none";
+        errorState.style.display = "block";
+        lucide.createIcons();
+        return;
+      }
+
+      try {
+        const data = await apiCall(`/quiz/code/${quizCode}`);
+        currentQuiz = data.quiz;
+
+        document.getElementById("quizTopic").textContent = currentQuiz.topic;
+
+        renderQuestions();
+        startTimer(currentQuiz.timeLimit * 60);
+
+        loadingState.style.display = "none";
+        quizContainer.style.display = "block";
+        lucide.createIcons();
+      } catch (error) {
+        loadingState.style.display = "none";
+        errorState.style.display = "block";
+        lucide.createIcons();
+      }
+    }
+
+    // ---------- Render Questions ----------
+    function renderQuestions() {
+      const letters = ["A", "B", "C", "D", "E", "F"];
+      totalCountEl.textContent = currentQuiz.questions.length;
+
+      questionsContainer.innerHTML = currentQuiz.questions
+        .map((q, idx) => {
+          const optionsHtml = q.options
+            .map((opt, i) => `
+              <label class="option">
+                <input type="radio" name="q_${q._id}" value="${opt}" data-qid="${q._id}" />
+                <span class="option-letter">${letters[i]}</span>
+                <span class="option-text">${opt}</span>
+              </label>
+            `)
+            .join("");
+
+          return `
+            <div class="question-card">
+              <div class="question-header">
+                <div class="question-number">${idx + 1}</div>
+                <div class="question-text">${q.question}</div>
+              </div>
+              <div class="options">${optionsHtml}</div>
+            </div>
+          `;
+        })
+        .join("");
+
+      // Track answered
+      questionsContainer.querySelectorAll("input[type=radio]").forEach((input) => {
+        input.addEventListener("change", updateAnsweredCount);
+      });
+    }
+
+    function updateAnsweredCount() {
+      const total = currentQuiz.questions.length;
+      let answered = 0;
+      currentQuiz.questions.forEach((q) => {
+        if (document.querySelector(`input[name="q_${q._id}"]:checked`)) answered++;
+      });
+      answeredCountEl.textContent = answered;
+    }
+
+    // ---------- Timer ----------
+    function startTimer(seconds) {
+      timeRemaining = seconds;
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          handleAutoSubmit("time", "Time's Up", "Your time has ended. The quiz is being submitted automatically.");
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timeRemaining / 60).toString().padStart(2, "0");
+      const s = (timeRemaining % 60).toString().padStart(2, "0");
+      timerText.textContent = `${m}:${s}`;
+
+      timerBox.classList.remove("warning", "danger");
+      if (timeRemaining <= 30) {
+        timerBox.classList.add("danger");
+      } else if (timeRemaining <= 120) {
+        timerBox.classList.add("warning");
+      }
+    }
+
+    // ---------- Auto Submit ----------
+    function handleAutoSubmit(reason, title, message) {
+      if (submitted) return;
+      submitted = true;
+      submitReason = reason === "time" ? "auto-submitted" : "auto-submitted";
+
+      overlayTitle.textContent = title;
+      overlayMessage.textContent = message;
+      overlay.classList.add("show");
+
+      if (timerInterval) clearInterval(timerInterval);
+
+      // Small delay to let user read overlay
+      setTimeout(() => {
+        sendSubmit();
+      }, 1200);
+    }
+
+    // ---------- Visibility / Blur detection ----------
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && !submitted) {
+        handleAutoSubmit(
+          "tab",
+          "Tab Switch Detected",
+          "You switched tabs or minimized the window. Your quiz is being auto-submitted."
+        );
+      }
+    });
+
+    window.addEventListener("blur", () => {
+      if (!submitted && currentQuiz) {
+        // Small delay — agar blur notification ki wajah se ho, immediately submit na kare
+        setTimeout(() => {
+          if (document.hidden && !submitted) return; // visibilitychange handle karega
+        }, 100);
+      }
+    });
+
+    // ---------- Manual Submit ----------
+    const form = document.getElementById("quizForm");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (submitted) return;
+      submitted = true;
+      submitReason = "completed";
+      if (timerInterval) clearInterval(timerInterval);
+      sendSubmit();
+    });
+
+    // ---------- Send Submit ----------
+    async function sendSubmit() {
+      // Collect answers
+      const answers = currentQuiz.questions.map((q) => {
+        const selected = document.querySelector(`input[name="q_${q._id}"]:checked`);
+        return {
+          questionId: q._id,
+          selected: selected ? selected.value : "",
+        };
+      });
+
+      try {
+        const data = await apiCall(
+          "/quiz/submit",
+          "POST",
+          {
+            quizId: currentQuiz.id,
+            answers,
+            status: submitReason,
+          },
+          "student"
+        );
+
+        // Save result in sessionStorage for result page
+        sessionStorage.setItem("quizResult", JSON.stringify(data));
+
+        // Redirect to result
+        window.location.href = "result.html";
+      } catch (error) {
+        // Even on error, go to result with whatever we have
+        sessionStorage.setItem("quizResult", JSON.stringify({
+          score: 0,
+          total: currentQuiz.questions.length,
+          details: [],
+          error: error.message,
+        }));
+        window.location.href = "result.html";
+      }
+    }
+
+    // ---------- Init ----------
+    if (token && user) {
+      loadQuiz();
+    }
+  </script>
+
+</body>
+</html>

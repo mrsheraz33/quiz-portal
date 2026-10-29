@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Signup — AI Quiz Portal</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="auth-page">
+    <div class="auth-container">
+
+      <a href="../index.html" class="back-link">
+        <i data-lucide="arrow-left"></i>
+        Back to Home
+      </a>
+
+      <div class="auth-card">
+
+        <div class="auth-header">
+          <div class="auth-logo">
+            <i data-lucide="user-plus"></i>
+          </div>
+          <h1 class="auth-title">Student Signup</h1>
+          <p class="auth-subtitle">Create your account to get started</p>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form id="signupForm">
+
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" placeholder="e.g. Ahmed Ali" required />
+          </div>
+
+          <div class="form-group">
+            <label for="studentId">Student ID</label>
+            <input type="text" id="studentId" placeholder="24-Arid-4836" required />
+            <span style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+              Format: YY-Dept-RollNo (e.g. 24-Arid-4836)
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Minimum 6 characters" required />
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Re-enter password" required />
+          </div>
+
+          <button type="submit" id="submitBtn" class="btn btn-primary btn-full">
+            <i data-lucide="user-plus"></i>
+            Create Account
+          </button>
+
+        </form>
+
+        <p class="auth-footer">
+          Already have an account?
+          <a href="login.html">Login</a>
+        </p>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const form = document.getElementById("signupForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const studentId = document.getElementById("studentId").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (!name || !studentId || !password || !confirmPassword) {
+        showAlert("alertBox", "Please fill all fields", "error");
+        return;
+      }
+
+      if (password.length < 6) {
+        showAlert("alertBox", "Password must be at least 6 characters", "error");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showAlert("alertBox", "Passwords do not match", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Creating...';
+
+      try {
+        const data = await apiCall("/student/register", "POST", {
+          name,
+          studentId,
+          password,
+        });
+
+        saveToken("student", data.token);
+        saveUser("student", data.student);
+
+        showAlert("alertBox", "Account created successfully!", "success");
+
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1000);
+      } catch (error) {
+        showAlert("alertBox", error.message, "error");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="user-plus"></i> Create Account';
+        lucide.createIcons();
+      }
+    });
+  </script>
+
+</body>
+</html>

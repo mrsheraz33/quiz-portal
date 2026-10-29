@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Result — AI Quiz Portal</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background: var(--gray-50);
+      min-height: 100vh;
+    }
+
+    .result-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    /* ---------- Score Hero ---------- */
+    .score-hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: var(--radius-xl);
+      padding: 48px 32px;
+      text-align: center;
+      color: var(--white);
+      margin-bottom: 32px;
+      box-shadow: 0 15px 40px rgba(79, 70, 229, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .score-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .score-hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .score-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.9;
+      margin-bottom: 12px;
+    }
+
+    .score-circle {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .score-value {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .score-total {
+      font-size: 18px;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    .score-percent {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .score-message {
+      font-size: 15px;
+      opacity: 0.9;
+    }
+
+    /* ---------- Stats Row ---------- */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .mini-stat {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mini-stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mini-stat-icon.green { background: #d1fae5; }
+    .mini-stat-icon.green [data-lucide] { color: var(--success); width: 22px; height: 22px; }
+
+    .mini-stat-icon.red { background: #fee2e2; }
+    .mini-stat-icon.red [data-lucide] { color: var(--danger); width: 22px; height: 22px; }
+
+    .mini-stat-icon.amber { background: #fef3c7; }
+    .mini-stat-icon.amber [data-lucide] { color: var(--warning); width: 22px; height: 22px; }
+
+    .mini-stat-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .mini-stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gray-900);
+      line-height: 1;
+    }
+
+    .mini-stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-500);
+    }
+
+    /* ---------- Section ---------- */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gray-900);
+    }
+
+    /* ---------- Result Cards ---------- */
+    .result-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--gray-300);
+    }
+
+    .result-card.correct { border-left-color: var(--success); }
+    .result-card.incorrect { border-left-color: var(--danger); }
+    .result-card.skipped { border-left-color: var(--warning); }
+
+    .result-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .result-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .result-icon.correct { background: #d1fae5; }
+    .result-icon.correct [data-lucide] { color: var(--success); width: 18px; height: 18px; }
+
+    .result-icon.incorrect { background: #fee2e2; }
+    .result-icon.incorrect [data-lucide] { color: var(--danger); width: 18px; height: 18px; }
+
+    .result-icon.skipped { background: #fef3c7; }
+    .result-icon.skipped [data-lucide] { color: var(--warning); width: 18px; height: 18px; }
+
+    .result-question {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gray-900);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .answer-row {
+      display: grid;
+      gap: 8px;
+      margin-left: 46px;
+    }
+
+    .answer-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+
+    .answer-item.correct {
+      background: #f0fdf4;
+      color: #166534;
+    }
+
+    .answer-item.incorrect {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .answer-item.neutral {
+      background: var(--gray-50);
+      color: var(--gray-700);
+    }
+
+    .answer-label {
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .explanation-box {
+      margin-top: 14px;
+      margin-left: 46px;
+      background: var(--primary-light);
+      border-left: 3px solid var(--primary);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--gray-700);
+      line-height: 1.6;
+    }
+
+    .explanation-box strong {
+      color: var(--primary);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---------- Actions ---------- */
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+
+    /* ---------- Loading / Error ---------- */
+    .center-state {
+      padding: 100px 20px;
+      text-align: center;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .center-state .spinner-dark {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-icon {
+      width: 64px;
+      height: 64px;
+      background: #fee2e2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .error-icon [data-lucide] {
+      color: var(--danger);
+      width: 32px;
+      height: 32px;
+    }
+
+    .center-state h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 8px;
+    }
+
+    .center-state p {
+      font-size: 14px;
+      color: var(--gray-500);
+      margin-bottom: 20px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 640px) {
+      .result-wrapper { padding: 24px 16px 40px; }
+      .score-hero { padding: 32px 20px; }
+      .score-value { font-size: 42px; }
+      .stats-row { grid-template-columns: 1fr; }
+      .answer-row, .explanation-box { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING -->
+  <div class="center-state" id="loadingState">
+    <div class="spinner-dark"></div>
+    <p>Preparing your result...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div class="center-state" id="errorState" style="display: none;">
+    <div class="error-icon">
+      <i data-lucide="alert-triangle"></i>
+    </div>
+    <h2>No Result Found</h2>
+    <p>Please attempt a quiz to see your result.</p>
+    <a href="dashboard.html" class="btn btn-primary">
+      <i data-lucide="arrow-left"></i>
+      Back to Dashboard
+    </a>
+  </div>
+
+  <!-- RESULT CONTENT -->
+  <div class="result-wrapper" id="resultContent" style="display: none;">
+
+    <!-- SCORE HERO -->
+    <div class="score-hero">
+      <div class="score-hero-content">
+        <div class="score-label">Your Score</div>
+        <div class="score-circle">
+          <div class="score-value" id="scoreValue">0</div>
+          <div class="score-total">out of <span id="totalValue">0</span></div>
+        </div>
+        <div class="score-percent" id="percentValue">0%</div>
+        <div class="score-message" id="scoreMessage">Keep practicing!</div>
+      </div>
+    </div>
+
+    <!-- MINI STATS -->
+    <div class="stats-row">
+      <div class="mini-stat">
+        <div class="mini-stat-icon green">
+          <i data-lucide="check-circle-2"></i>
+        </div>
+        <div class="mini-stat-info">
+          <div class="mini-stat-value" id="correctCount">0</div>
+          <div class="mini-stat-label">Correct</div>
+        </div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="mini-stat-icon red">
+          <i data-lucide="x-circle"></i>
+        </div>
+        <div class="mini-stat-info">
+          <div class="mini-stat-value" id="incorrectCount">0</div>
+          <div class="mini-stat-label">Incorrect</div>
+        </div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="mini-stat-icon amber">
+          <i data-lucide="minus-circle"></i>
+        </div>
+        <div class="mini-stat-info">
+          <div class="mini-stat-value" id="skippedCount">0</div>
+          <div class="mini-stat-label">Skipped</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILED BREAKDOWN -->
+    <div class="section-header">
+      <h2 class="section-title">Detailed Review</h2>
+    </div>
+
+    <div id="detailsContainer"></div>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+      <a href="dashboard.html" class="btn btn-primary">
+        <i data-lucide="layout-dashboard"></i>
+        Back to Dashboard
+      </a>
+    </div>
+
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Auth check
+    const token = getToken("student");
+    if (!token) {
+      window.location.href = "login.html";
+    }
+
+    // Read result from sessionStorage
+    const raw = sessionStorage.getItem("quizResult");
+
+    if (!raw) {
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("errorState").style.display = "block";
+      lucide.createIcons();
+    } else {
+      const result = JSON.parse(raw);
+      renderResult(result);
+      // Clear so refresh pe stale data na dikhe
+      sessionStorage.removeItem("quizResult");
+    }
+
+    function renderResult(result) {
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("resultContent").style.display = "block";
+
+      const score = result.score || 0;
+      const total = result.total || 0;
+      const percent = total > 0 ? Math.round((score / total) * 100) : 0;
+      const details = result.details || [];
+
+      // Score hero
+      document.getElementById("scoreValue").textContent = score;
+      document.getElementById("totalValue").textContent = total;
+      document.getElementById("percentValue").textContent = `${percent}%`;
+
+      // Message based on percent
+      let message = "Keep practicing!";
+      if (percent === 100) message = "Perfect! Outstanding performance!";
+      else if (percent >= 80) message = "Excellent work!";
+      else if (percent >= 60) message = "Good job! Keep it up.";
+      else if (percent >= 40) message = "Not bad — review and try again!";
+      else message = "Don't worry, review the answers and try again.";
+      document.getElementById("scoreMessage").textContent = message;
+
+      // Counts
+      let correctCount = 0, incorrectCount = 0, skippedCount = 0;
+
+      details.forEach((d) => {
+        if (!d.selected || d.selected === "") skippedCount++;
+        else if (d.isCorrect) correctCount++;
+        else incorrectCount++;
+      });
+
+      document.getElementById("correctCount").textContent = correctCount;
+      document.getElementById("incorrectCount").textContent = incorrectCount;
+      document.getElementById("skippedCount").textContent = skippedCount;
+
+      // Details
+      const container = document.getElementById("detailsContainer");
+
+      if (details.length === 0) {
+        container.innerHTML = `
+          <div class="result-card">
+            <p style="color: var(--gray-500); font-size: 14px;">
+              Detailed review is not available for this attempt.
+            </p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = details
+          .map((d, idx) => {
+            let stateClass = "skipped";
+            let icon = "minus";
+            let iconClass = "skipped";
+
+            if (!d.selected || d.selected === "") {
+              stateClass = "skipped";
+              icon = "minus";
+              iconClass = "skipped";
+            } else if (d.isCorrect) {
+              stateClass = "correct";
+              icon = "check";
+              iconClass = "correct";
+            } else {
+              stateClass = "incorrect";
+              icon = "x";
+              iconClass = "incorrect";
+            }
+
+            // Answer rows
+            let answerHtml = "";
+            if (d.selected && d.selected !== "") {
+              answerHtml += `
+                <div class="answer-item ${d.isCorrect ? "correct" : "incorrect"}">
+                  <span class="answer-label">Your answer:</span>
+                  <span>${d.selected} ${d.isCorrect ? "(Correct)" : "(Incorrect)"}</span>
+                </div>
+              `;
+            } else {
+              answerHtml += `
+                <div class="answer-item neutral">
+                  <span class="answer-label">Your answer:</span>
+                  <span>Not answered</span>
+                </div>
+              `;
+            }
+
+            if (!d.isCorrect) {
+              answerHtml += `
+                <div class="answer-item correct">
+                  <span class="answer-label">Correct answer:</span>
+                  <span>${d.correct}</span>
+                </div>
+              `;
+            }
+
+            // Explanation
+            let explanationHtml = "";
+            if (d.explanation) {
+              explanationHtml = `
+                <div class="explanation-box">
+                  <strong>Explanation</strong>
+                  ${d.explanation}
+                </div>
+              `;
+            }
+
+            return `
+              <div class="result-card ${stateClass}">
+                <div class="result-card-header">
+                  <div class="result-icon ${iconClass}">
+                    <i data-lucide="${icon}"></i>
+                  </div>
+                  <div class="result-question">
+                    <span style="color: var(--gray-400); font-size: 13px; font-weight: 600;">
+                      Q${idx + 1}.
+                    </span>
+                    ${d.question}
+                  </div>
+                </div>
+                <div class="answer-row">
+                  ${answerHtml}
+                </div>
+                ${explanationHtml}
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      lucide.createIcons();
+    }
+  </script>
+
+</body>
+</html>

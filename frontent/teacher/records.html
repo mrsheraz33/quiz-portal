@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Records — AI Quiz Portal</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background: var(--gray-50); }
+
+    .dashboard-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ---------- Sidebar ---------- */
+    .sidebar {
+      width: 260px;
+      background: var(--white);
+      border-right: 1px solid var(--gray-200);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      margin-bottom: 32px;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--gray-900);
+      text-decoration: none;
+    }
+
+    .sidebar-brand-icon {
+      width: 38px; height: 38px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-icon [data-lucide] {
+      color: var(--white);
+      width: 20px; height: 20px;
+    }
+
+    .sidebar-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray-400);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 0 12px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      color: var(--gray-700);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-link:hover { background: var(--gray-100); color: var(--gray-900); }
+    .sidebar-link.active { background: var(--primary-light); color: var(--primary); }
+    .sidebar-link [data-lucide] { width: 19px; height: 19px; }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--gray-200);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      transition: background 0.15s ease;
+    }
+    .sidebar-user:hover { background: var(--gray-100); }
+
+    .avatar {
+      width: 38px; height: 38px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-weight: 700;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name {
+      font-size: 14px; font-weight: 700; color: var(--gray-900);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sidebar-user-email {
+      font-size: 12px; color: var(--gray-500);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .logout-btn {
+      background: none; border: none; color: var(--gray-500);
+      cursor: pointer; padding: 6px; border-radius: 8px;
+      display: flex; align-items: center; transition: all 0.15s ease;
+    }
+    .logout-btn:hover { background: #fee2e2; color: var(--danger); }
+    .logout-btn [data-lucide] { width: 18px; height: 18px; }
+
+    /* ---------- Main ---------- */
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      padding: 40px 48px;
+      min-height: 100vh;
+    }
+
+    .main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .main-header-left h1 {
+      font-size: 30px; font-weight: 800;
+      color: var(--gray-900); margin-bottom: 8px;
+    }
+    .main-header-left p { font-size: 15px; color: var(--gray-500); }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-700);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .refresh-btn:hover { background: var(--gray-50); border-color: var(--gray-300); }
+    .refresh-btn [data-lucide] { width: 16px; height: 16px; }
+
+    /* ---------- Stats Row ---------- */
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .mini-stat {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mini-stat-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .mini-stat-icon.purple { background: var(--primary-light); }
+    .mini-stat-icon.purple [data-lucide] { color: var(--primary); width: 20px; height: 20px; }
+
+    .mini-stat-icon.green { background: #d1fae5; }
+    .mini-stat-icon.green [data-lucide] { color: var(--success); width: 20px; height: 20px; }
+
+    .mini-stat-icon.amber { background: #fef3c7; }
+    .mini-stat-icon.amber [data-lucide] { color: var(--warning); width: 20px; height: 20px; }
+
+    .mini-stat-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .mini-stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gray-900);
+      line-height: 1;
+    }
+
+    .mini-stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-500);
+    }
+
+    /* ---------- Table Card ---------- */
+    .table-card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .table th {
+      background: var(--gray-50);
+      font-weight: 700;
+      color: var(--gray-700);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.6px;
+      padding: 14px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .table td {
+      padding: 16px 20px;
+      font-size: 14px;
+      color: var(--gray-700);
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .table tbody tr:hover { background: var(--gray-50); }
+    .table tbody tr:last-child td { border-bottom: none; }
+
+    .student-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .student-avatar-sm {
+      width: 36px; height: 36px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .student-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .student-name {
+      font-weight: 700;
+      color: var(--gray-900);
+      font-size: 14px;
+    }
+
+    .student-id {
+      font-size: 12px;
+      color: var(--gray-500);
+      font-family: 'Courier New', monospace;
+    }
+
+    .score-cell {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .score-cell.good { color: var(--success); }
+    .score-cell.mid { color: var(--warning); }
+    .score-cell.low { color: var(--danger); }
+
+    /* ---------- Loading / Empty ---------- */
+    .loading-state,
+    .empty-state {
+      padding: 80px 20px;
+      text-align: center;
+      color: var(--gray-500);
+    }
+
+    .loading-state .spinner-dark {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .empty-state [data-lucide] {
+      width: 56px; height: 56px;
+      color: var(--gray-300);
+      margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 900px) {
+      .sidebar { width: 220px; }
+      .main-content { margin-left: 220px; padding: 30px 24px; }
+      .mini-stats { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; padding: 24px 16px; }
+
+      .table-card { overflow-x: auto; }
+      .table { min-width: 700px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="sidebar-brand">
+        <div class="sidebar-brand-icon">
+          <i data-lucide="brain-circuit"></i>
+        </div>
+        AI Quiz Portal
+      </a>
+
+      <div class="sidebar-section-title">Menu</div>
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="sidebar-link">
+          <i data-lucide="layout-dashboard"></i>
+          Dashboard
+        </a>
+        <a href="generate.html" class="sidebar-link">
+          <i data-lucide="sparkles"></i>
+          Generate Quiz
+        </a>
+        <a href="records.html" class="sidebar-link active">
+          <i data-lucide="bar-chart-3"></i>
+          Records
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="avatar" id="userAvatar">T</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" id="userName">Teacher</div>
+            <div class="sidebar-user-email" id="userEmail">teacher@example.com</div>
+          </div>
+          <button class="logout-btn" id="logoutBtn" title="Logout">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <div class="main-header">
+        <div class="main-header-left">
+          <h1>Student Records</h1>
+          <p>All quiz attempts submitted by your students</p>
+        </div>
+        <button class="refresh-btn" id="refreshBtn">
+          <i data-lucide="refresh-cw"></i>
+          Refresh
+        </button>
+      </div>
+
+      <!-- MINI STATS -->
+      <div class="mini-stats">
+        <div class="mini-stat">
+          <div class="mini-stat-icon purple">
+            <i data-lucide="users"></i>
+          </div>
+          <div class="mini-stat-info">
+            <div class="mini-stat-value" id="statStudents">0</div>
+            <div class="mini-stat-label">Unique Students</div>
+          </div>
+        </div>
+
+        <div class="mini-stat">
+          <div class="mini-stat-icon green">
+            <i data-lucide="file-check"></i>
+          </div>
+          <div class="mini-stat-info">
+            <div class="mini-stat-value" id="statAttempts">0</div>
+            <div class="mini-stat-label">Total Attempts</div>
+          </div>
+        </div>
+
+        <div class="mini-stat">
+          <div class="mini-stat-icon amber">
+            <i data-lucide="percent"></i>
+          </div>
+          <div class="mini-stat-info">
+            <div class="mini-stat-value" id="statAvg">0%</div>
+            <div class="mini-stat-label">Average Score</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-card" id="tableCard">
+
+        <div class="loading-state" id="loadingState">
+          <div class="spinner-dark"></div>
+          <p>Loading records...</p>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+          <i data-lucide="inbox"></i>
+          <h3>No records yet</h3>
+          <p>Once students attempt your quizzes, their results will appear here</p>
+        </div>
+
+        <table class="table" id="recordsTable" style="display: none;">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Quiz Topic</th>
+              <th>Difficulty</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    // Auth check
+    const token = getToken("teacher");
+    const user = getUser("teacher");
+
+    if (!token || !user) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("userName").textContent = user.name;
+      document.getElementById("userEmail").textContent = user.email;
+      document.getElementById("userAvatar").textContent = user.name.charAt(0).toUpperCase();
+    }
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      logout("teacher");
+    });
+
+    // Load records
+    async function loadRecords() {
+      const loading = document.getElementById("loadingState");
+      const empty = document.getElementById("emptyState");
+      const table = document.getElementById("recordsTable");
+      const tbody = document.getElementById("recordsBody");
+
+      loading.style.display = "block";
+      empty.style.display = "none";
+      table.style.display = "none";
+
+      try {
+        const data = await apiCall("/quiz/records", "GET", null, "teacher");
+        const records = data.records || [];
+
+        loading.style.display = "none";
+
+        if (records.length === 0) {
+          empty.style.display = "block";
+          updateStats([]);
+          return;
+        }
+
+        // Build rows
+        tbody.innerHTML = records.map((r) => {
+          const percentage = r.total > 0 ? (r.score / r.total) * 100 : 0;
+          let scoreClass = "low";
+          if (percentage >= 70) scoreClass = "good";
+          else if (percentage >= 40) scoreClass = "mid";
+
+          const statusBadge =
+            r.status === "completed"
+              ? '<span class="badge badge-success">Completed</span>'
+              : r.status === "auto-submitted"
+              ? '<span class="badge badge-warning">Auto-Submitted</span>'
+              : '<span class="badge badge-info">Started</span>';
+
+          const initial = (r.studentName || "?").charAt(0).toUpperCase();
+          const date = new Date(r.date).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          });
+
+          return `
+            <tr>
+              <td>
+                <div class="student-cell">
+                  <div class="student-avatar-sm">${initial}</div>
+                  <div class="student-info">
+                    <span class="student-name">${r.studentName}</span>
+                    <span class="student-id">${r.studentId}</span>
+                  </div>
+                </div>
+              </td>
+              <td>${r.topic}</td>
+              <td><span class="badge badge-info">${r.difficulty}</span></td>
+              <td><span class="score-cell ${scoreClass}">${r.score}/${r.total}</span></td>
+              <td>${statusBadge}</td>
+              <td>${date}</td>
+            </tr>
+          `;
+        }).join("");
+
+        table.style.display = "table";
+        updateStats(records);
+        lucide.createIcons();
+      } catch (error) {
+        loading.innerHTML = `<p style="color: var(--danger);">Failed to load: ${error.message}</p>`;
+      }
+    }
+
+    function updateStats(records) {
+      if (records.length === 0) {
+        document.getElementById("statStudents").textContent = "0";
+        document.getElementById("statAttempts").textContent = "0";
+        document.getElementById("statAvg").textContent = "0%";
+        return;
+      }
+
+      const uniqueStudents = new Set(records.map((r) => r.studentId)).size;
+      const totalAttempts = records.length;
+      const totalPct = records.reduce((sum, r) => {
+        return sum + (r.total > 0 ? (r.score / r.total) * 100 : 0);
+      }, 0);
+      const avg = Math.round(totalPct / records.length);
+
+      document.getElementById("statStudents").textContent = uniqueStudents;
+      document.getElementById("statAttempts").textContent = totalAttempts;
+      document.getElementById("statAvg").textContent = `${avg}%`;
+    }
+
+    // Refresh button
+    document.getElementById("refreshBtn").addEventListener("click", loadRecords);
+
+    // Initial load
+    loadRecords();
+  </script>
+
+</body>
+</html>

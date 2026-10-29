@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Login — AI Quiz Portal</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="auth-page">
+    <div class="auth-container">
+
+      <a href="../index.html" class="back-link">
+        <i data-lucide="arrow-left"></i>
+        Back to Home
+      </a>
+
+      <div class="auth-card">
+
+        <div class="auth-header">
+          <div class="auth-logo">
+            <i data-lucide="user"></i>
+          </div>
+          <h1 class="auth-title">Student Login</h1>
+          <p class="auth-subtitle">Welcome back! Please login to continue</p>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form id="loginForm">
+
+          <div class="form-group">
+            <label for="studentId">Student ID</label>
+            <input type="text" id="studentId" placeholder="24-Arid-4836" required />
+            <span style="font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+              Format: YY-Dept-RollNo
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required />
+          </div>
+
+          <button type="submit" id="submitBtn" class="btn btn-primary btn-full">
+            <i data-lucide="log-in"></i>
+            Login
+          </button>
+
+        </form>
+
+        <p class="auth-footer">
+          Don't have an account?
+          <a href="signup.html">Signup</a>
+        </p>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    lucide.createIcons();
+
+    const form = document.getElementById("loginForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const studentId = document.getElementById("studentId").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!studentId || !password) {
+        showAlert("alertBox", "Please fill all fields", "error");
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Logging in...';
+
+      try {
+        const data = await apiCall("/student/login", "POST", {
+          studentId,
+          password,
+        });
+
+        saveToken("student", data.token);
+        saveUser("student", data.student);
+
+        showAlert("alertBox", "Login successful!", "success");
+
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 800);
+      } catch (error) {
+        showAlert("alertBox", error.message, "error");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="log-in"></i> Login';
+        lucide.createIcons();
+      }
+    });
+  </script>
+
+</body>
+</html>
